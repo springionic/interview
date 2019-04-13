@@ -66,7 +66,27 @@
 - 唯一索引
         
         create unique index first_index on student(username(length));
+### MySQL分页查询的几种方法
+#### limit基本实现方式
+一般情况下，客户端通过传递 pageNo（页码）、pageSize（每页条数）两个参数去分页查询数据库中的数据，在数据量较小（元组百/千级）时使用 MySQL自带的 limit 来解决这个问题：
     
+        收到客户端{pageNo:1,pagesize:10}
+        select * from table limit (pageNo-1)*pageSize, pageSize;
+        收到客户端{pageNo:5,pageSize:30}
+        select * from table limit (pageNo-1)*pageSize,pageSize;
+#### 建立主键或者唯一索引
+在数据量较小的时候简单的使用 limit 进行数据分页在性能上面不会有明显的缓慢，但是数据量达到了 万级到百万级 sql语句的性能将会影响数据的返回。这时需要利用主键或者唯一索引进行数据分页；
+        
+        假设主键或者唯一索引为 good_id
+        收到客户端{pageNo:5,pagesize:10}
+        select * from table where good_id > (pageNo-1)*pageSize limit pageSize;
+        返回good_id为40到50之间的数据
+#### 基于数据再排序
+当需要返回的信息为顺序或者倒序时，对上面的语句基于数据再排序。order by ASC/DESC 顺序或倒序 默认为顺序
+
+        select * from table where good_id > (pageNo-1)*pageSize order by good_id limit pageSize;
+        返回good_id为40到50之间的数据,数据依据good_id顺序排列
+
         
     
     
